@@ -1,0 +1,33 @@
+[Unit]
+Description=Godar Aircraft Monitor
+Documentation=https://github.com/yourusername/godar
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.config/godar
+ExecStart=%h/.local/bin/godar monitor
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=godar
+
+# Environment variables (optional - can also use config file)
+# Environment="GODAR_SERVER_URL=http://your-vrs-server:8080/VirtualRadar/AircraftList.json"
+# Environment="GODAR_SERVER_USERNAME=your_username"
+# Environment="GODAR_SERVER_PASSWORD=your_password"
+# Environment="GODAR_FILTERS_AIRCRAFT_TYPE=A320"
+# Environment="GODAR_FILTERS_MIN_ALTITUDE=10000"
+# Environment="GODAR_FILTERS_MAX_ALTITUDE=40000"
+# Environment="GODAR_FILTERS_MILITARY=false"
+# Environment="GODAR_LOCATION_LATITUDE=51.5074"
+# Environment="GODAR_LOCATION_LONGITUDE=-0.1278"
+# Environment="GODAR_LOCATION_MAX_DISTANCE=100.0"
+# Environment="GODAR_MONITORING_POLL_INTERVAL=10s"
+# Environment="GODAR_MONITORING_DEBUG=false"
+# Environment="GODAR_NOTIFICATION_ENABLED=true"
+
+[Install]
+WantedBy=default.target 

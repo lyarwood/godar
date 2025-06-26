@@ -1,0 +1,25 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*_test
+
+# Output of the go tool chain
+.cache/
+.idea/
+.vscode/
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# Environment variables
+.env
+
+# Local settings
+.DS_Store
