@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/lyarwood/godar/pkg/config"
@@ -41,7 +42,11 @@ var monitorCmd = &cobra.Command{
 
 		// Handle graceful shutdown
 		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		if runtime.GOOS == "windows" {
+			signal.Notify(c, os.Interrupt)
+		} else {
+			signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		}
 		<-c
 		log.Info("Received shutdown signal, stopping monitor...")
 		mon.Stop()

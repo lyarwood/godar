@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -49,8 +50,14 @@ func initConfig() {
 
 		viper.AddConfigPath(home)
 		viper.AddConfigPath(".")
-		viper.AddConfigPath("/etc/godar")
-		viper.SetConfigName(".godar")
+		if runtime.GOOS == "windows" {
+			if appData := os.Getenv("APPDATA"); appData != "" {
+				viper.AddConfigPath(appData)
+			}
+		} else {
+			viper.AddConfigPath("/etc/godar")
+		}
+		viper.SetConfigName("godar")
 		viper.SetConfigType("yaml")
 	}
 

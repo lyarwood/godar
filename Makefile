@@ -34,8 +34,11 @@ lint-fix: ## Run linter with auto-fix
 
 clean: ## Clean build artifacts
 	go clean
-	rm -f ${BINARY_NAME}
-	rm -f coverage.out coverage.html
+ifeq ($(OS),Windows_NT)
+	-del /f /q ${BINARY_NAME}.exe coverage.out coverage.html ${BINARY_NAME}-*
+else
+	-rm -f ${BINARY_NAME} coverage.out coverage.html ${BINARY_NAME}-*
+endif
 
 vendor: ## Vendor all dependencies
 	go mod tidy
