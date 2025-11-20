@@ -62,3 +62,12 @@ check: ## Run all checks (lint, test, build)
 	make lint
 	make test
 	make build
+
+install-systemd-user-service: install ## Install systemd user service
+	@mkdir -p ~/.config/systemd/user
+	@mkdir -p ~/.config/godar
+	@cp godar.service ~/.config/systemd/user/
+	@systemctl --user daemon-reload
+	@echo "Systemd user service installed to ~/.config/systemd/user/godar.service"
+	@echo "Enable with: systemctl --user enable godar.service"
+	@echo "Start with: systemctl --user start godar.service"
