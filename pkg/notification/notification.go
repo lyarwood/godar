@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lyarwood/godar/pkg/notification/images"
-
 	"github.com/gen2brain/beeep"
+	"github.com/lyarwood/godar/pkg/geo"
+	"github.com/lyarwood/godar/pkg/notification/images"
 	"go.uber.org/zap"
 )
 
@@ -65,7 +65,7 @@ func NewNotifierWithSender(enabled bool, duration time.Duration, logger *zap.Log
 }
 
 // Send sends a desktop notification for a detected aircraft.
-func (n *Notifier) Send(callsign, aircraftType string, altitude int, speed float64, distance float64, direction string, previousDistance ...float64) error {
+func (n *Notifier) Send(callsign, aircraftType string, altitude int, speed float64, distance float64, direction string, heading float64, aircraftLat, aircraftLon, observerLat, observerLon float64, previousDistance ...float64) error {
 	if !n.enabled {
 		return nil
 	}
@@ -86,6 +86,15 @@ func (n *Notifier) Send(callsign, aircraftType string, altitude int, speed float
 		}
 		notificationMessage += fmt.Sprintf("\nPrevious: %.2f km (%s by %.2f km)",
 			previousDistance[0], changeDirection, distanceChange)
+	}
+
+	// Calculate and add closest approach information if aircraft has valid heading and speed
+	if heading > 0 && speed > 1.0 && aircraftLat != 0 && aircraftLon != 0 {
+		approach := geo.CalculateClosestApproach(observerLat, observerLon, aircraftLat, aircraftLon, heading, speed)
+		if approach.WillApproach && approach.TimeToClosest > 0 && approach.TimeToClosest < 30*time.Minute {
+			timeStr := geo.FormatTimeToClosest(approach.TimeToClosest)
+			notificationMessage += fmt.Sprintf("\nClosest: %.1f km in %s", approach.Distance, timeStr)
+		}
 	}
 
 	// Try to get aircraft image
