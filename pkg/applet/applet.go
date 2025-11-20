@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"fyne.io/systray"
 	"github.com/gen2brain/beeep"
+	"github.com/getlantern/systray"
 	"github.com/lyarwood/godar/pkg/config"
 	"github.com/lyarwood/godar/pkg/monitor"
 	"go.uber.org/zap"
