@@ -39,7 +39,12 @@ func NewFetcher(baseURL string, logger *zap.Logger) *Fetcher {
 	return &Fetcher{
 		BaseURL: baseURL,
 		Logger:  logger,
-		client:  &http.Client{},
+		client: &http.Client{
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				// Don't follow redirects - we need to capture cookies from redirect responses
+				return http.ErrUseLastResponse
+			},
+		},
 	}
 }
 
@@ -115,7 +120,8 @@ func (f *Fetcher) tryFormLogin() error {
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Godar/1.0)")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("Referer", fmt.Sprintf("https://%s/", baseURL.Host))
 
 	resp, err := f.client.Do(req)
 	if err != nil {
@@ -154,7 +160,8 @@ func (f *Fetcher) tryBasicAuth() error {
 	}
 
 	req.SetBasicAuth(f.Username, f.Password)
-	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Godar/1.0)")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("Referer", fmt.Sprintf("https://%s/", req.URL.Host))
 
 	resp, err := f.client.Do(req)
 	if err != nil {
@@ -200,7 +207,8 @@ func (f *Fetcher) tryURLAuth() error {
 		return fmt.Errorf("failed to create URL auth request: %w", err)
 	}
 
-	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Godar/1.0)")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("Referer", fmt.Sprintf("https://%s/", req.URL.Host))
 
 	resp, err := f.client.Do(req)
 	if err != nil {
@@ -235,7 +243,8 @@ func (f *Fetcher) tryNoAuth() error {
 		return fmt.Errorf("failed to create no-auth request: %w", err)
 	}
 
-	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Godar/1.0)")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("Referer", fmt.Sprintf("https://%s/", req.URL.Host))
 
 	resp, err := f.client.Do(req)
 	if err != nil {
@@ -350,7 +359,8 @@ func (f *Fetcher) Fetch() (*aircraft.AircraftList, error) {
 		// No authentication needed
 	}
 
-	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Godar/1.0)")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("Referer", fmt.Sprintf("https://%s/", req.URL.Host))
 
 	f.Logger.Debug("Sending HTTP request",
 		zap.String("method", req.Method),

@@ -1,0 +1,31 @@
+# Godar Configuration File
+# Copy this file to godar.yaml and adjust the settings for your environment
+
+server:
+  url: "http://your-vrs-server:8080/VirtualRadar/AircraftList.json"
+  username: ""         # Optional: HTTP Basic Auth username
+  password: ""         # Optional: HTTP Basic Auth password
+
+filters:
+  aircraft_type: ""    # e.g., "A320", "B737", "F-16"
+  min_altitude: 0      # Minimum altitude in feet
+  max_altitude: 0      # Maximum altitude in feet (0 = no limit)
+  military: false      # Filter for military aircraft only
+  operator: ""         # Filter by airline/operator name
+  flight_number: ""    # Filter by specific flight number
+
+location:
+  latitude: 0.0        # Your latitude (e.g., 51.5074 for London)
+  longitude: 0.0       # Your longitude (e.g., -0.1278 for London)
+  max_distance: 0.0    # Maximum distance in km (0 = no distance filtering)
+
+monitoring:
+  poll_interval: "10s" # How often to check for aircraft (e.g., "5s", "10s", "30s")
+  debug: false         # Enable debug logging
+
+notification:
+  enabled: true                    # Enable desktop notifications
+  duration: "30s"                  # How long notifications are displayed
+  notify_on_closer_only: true      # Only notify when aircraft get closer
+  re_notify_after: "0s"            # Re-notify after this time even if not closer (e.g., "5m")
+  cleanup_interval: "10m"          # How often to clean up old aircraft history

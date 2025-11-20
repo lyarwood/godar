@@ -19,13 +19,13 @@ A command-line tool to monitor overflying aircraft from a Virtual Radar Server w
 
 ### Prerequisites
 
-- Go 1.24 or later
+- Go 1.23 or later
 - Virtual Radar Server (VRS) instance
 
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/godar.git
+git clone https://github.com/lyarwood/godar.git
 cd godar
 go mod tidy
 go build -o godar ./
@@ -53,7 +53,12 @@ Godar supports configuration via environment variables or a YAML config file. Se
 
 ### Configuration File
 
-Create a `godar.yaml` file in your home directory or current working directory:
+Godar looks for configuration files in the following locations (in order of priority):
+1. `./godar.yaml` (current working directory)
+2. `~/.config/godar/godar.yaml` (user config directory)
+3. `~/godar.yaml` (home directory)
+
+Create a `godar.yaml` file in one of these locations (see `godar.yaml.example` for a template):
 
 ```yaml
 server:
@@ -391,7 +396,7 @@ godar/
 ├── go.mod                 # Go module file
 ├── go.sum                 # Go module checksums
 ├── Makefile               # Build automation
-├── godar.yaml             # Example configuration
+├── godar.yaml.example     # Example configuration file
 ├── godar.service          # Systemd user service
 ├── LICENSE                # MIT License
 └── README.md              # This file
