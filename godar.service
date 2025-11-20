@@ -7,12 +7,13 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=%h/.config/godar
-ExecStart=%h/go/bin/godar monitor
+ExecStart=%h/go/bin/godar applet
 Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=godar
+Environment="DISPLAY=:0"
 
 # Environment variables (optional - can also use config file)
 # Environment="GODAR_SERVER_URL=http://your-vrs-server:8080/VirtualRadar/AircraftList.json"
