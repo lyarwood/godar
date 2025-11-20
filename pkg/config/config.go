@@ -54,6 +54,9 @@ type NotificationConfig struct {
 	NotifyOnCloserOnly bool          `mapstructure:"notify_on_closer_only"` // Only notify when aircraft get closer
 	ReNotifyAfter      time.Duration `mapstructure:"re_notify_after"`       // Re-notify after this time even if not closer
 	CleanupInterval    time.Duration `mapstructure:"cleanup_interval"`      // How often to clean up old aircraft history
+	// Trajectory prediction options
+	ViewableDistance float64       `mapstructure:"viewable_distance"` // Distance in km within which aircraft is considered viewable (default: 15km)
+	PredictionWindow time.Duration `mapstructure:"prediction_window"` // Only show predictions within this time window (default: 30min)
 }
 
 // Load loads configuration from Viper (which is already set up by Cobra)
@@ -107,6 +110,8 @@ func setDefaults() {
 	viper.SetDefault("notification.notify_on_closer_only", true)
 	viper.SetDefault("notification.re_notify_after", 0*time.Second)
 	viper.SetDefault("notification.cleanup_interval", 0*time.Second)
+	viper.SetDefault("notification.viewable_distance", 15.0)
+	viper.SetDefault("notification.prediction_window", 30*time.Minute)
 }
 
 // validateConfig validates the configuration

@@ -95,7 +95,7 @@ func NewMonitor(cfg *config.Config, logger *zap.Logger) (*Monitor, error) {
 		fetcher.SetAuth(cfg.Server.Username, cfg.Server.Password)
 	}
 
-	notifier := notification.NewNotifier(cfg.Notification.Enabled, cfg.Notification.Duration, logger)
+	notifier := notification.NewNotifier(cfg.Notification.Enabled, cfg.Notification.Duration, logger, cfg.Notification.ViewableDistance, cfg.Notification.PredictionWindow)
 
 	return NewMonitorWithDeps(cfg, logger, fetcher, notifier)
 }

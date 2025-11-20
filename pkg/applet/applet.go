@@ -166,7 +166,7 @@ func (a *Applet) toggleMonitoring() {
 			fetcher.SetAuth(a.config.Server.Username, a.config.Server.Password)
 		}
 
-		notifier := NewAppletNotifier(a, a.config.Notification.Enabled, a.config.Notification.Duration, a.logger)
+		notifier := NewAppletNotifier(a, a.config.Notification.Enabled, a.config.Notification.Duration, a.logger, a.config.Notification.ViewableDistance, a.config.Notification.PredictionWindow)
 
 		mon, err := monitor.NewMonitorWithDeps(a.config, a.logger, fetcher, notifier)
 		if err != nil {

@@ -89,6 +89,8 @@ notification:
   notify_on_closer_only: true  # Only notify when aircraft get closer (default: true)
   re_notify_after: "5m"        # Re-notify after this time even if not closer (default: 0s)
   cleanup_interval: "10m"      # How often to clean up old aircraft history (default: 10m)
+  viewable_distance: 15.0      # Distance in km within which aircraft is considered viewable (default: 15km)
+  prediction_window: "30m"     # Only show trajectory predictions within this time window (default: 30m)
 ```
 
 ### Environment Variables
@@ -112,6 +114,8 @@ export GODAR_NOTIFICATION_DURATION="30s"  # How long notifications are displayed
 export GODAR_NOTIFICATION_NOTIFY_ON_CLOSER_ONLY="true"  # Only notify when aircraft get closer (default: true)
 export GODAR_NOTIFICATION_RE_NOTIFY_AFTER="5m"          # Re-notify after this time
 export GODAR_NOTIFICATION_CLEANUP_INTERVAL="10m"        # Cleanup interval
+export GODAR_NOTIFICATION_VIEWABLE_DISTANCE="15.0"      # Distance in km for viewable aircraft
+export GODAR_NOTIFICATION_PREDICTION_WINDOW="30m"       # Trajectory prediction time window
 ```
 
 ## Aircraft Tracking and Notification Filtering
@@ -124,6 +128,7 @@ Godar includes intelligent aircraft tracking to reduce notification spam and onl
 - **Closer-Only Notifications**: When enabled, only sends notifications when aircraft are getting closer to your location
 - **Re-notification**: Can re-notify about aircraft after a configurable time interval, even if they're not getting closer
 - **Automatic Cleanup**: Removes old aircraft from tracking history to prevent memory bloat
+- **Trajectory Prediction**: Calculates when aircraft will be closest to your location based on heading and speed
 
 ### Configuration Options
 
@@ -133,6 +138,8 @@ notification:
   notify_on_closer_only: true    # Only notify when aircraft get closer (default: true)
   re_notify_after: "5m"          # Re-notify after 5 minutes even if not closer
   cleanup_interval: "10m"        # Clean up old aircraft every 10 minutes
+  viewable_distance: 15.0        # Distance in km for viewable aircraft (default: 15km)
+  prediction_window: "30m"       # Only show predictions within this time window (default: 30m)
 ```
 
 ### Use Cases
@@ -141,6 +148,33 @@ notification:
 - **`notify_on_closer_only: false`**: Original behavior - notify about all aircraft
 - **`re_notify_after: "5m"`**: Useful for long-term monitoring where you want periodic updates
 - **`cleanup_interval: "10m"`**: Balances memory usage with tracking accuracy
+
+### Trajectory Prediction
+
+Godar can predict when aircraft will pass closest to your location based on their current heading and speed. When an aircraft is on a trajectory that will bring it within the configured `viewable_distance` within the `prediction_window`, the notification will include:
+
+```
+Closest: 8.5 km in 12 min
+```
+
+This helps you prepare to spot aircraft before they arrive at their closest point. The prediction considers:
+- **Current position and heading**: Aircraft's direction of travel
+- **Ground speed**: How fast the aircraft is moving
+- **Perpendicular distance**: Closest approach distance along the flight path
+- **Time to closest approach**: When the aircraft will reach that point
+
+#### Configuration
+
+- **`viewable_distance`**: Only show predictions if the aircraft will get within this distance (default: 15 km)
+- **`prediction_window`**: Only show predictions for aircraft approaching within this time window (default: 30 minutes)
+
+Example: To only see predictions for aircraft that will pass within 10 km in the next 20 minutes:
+
+```yaml
+notification:
+  viewable_distance: 10.0
+  prediction_window: "20m"
+```
 
 ### Aircraft Identification
 

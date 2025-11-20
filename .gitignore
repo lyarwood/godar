@@ -3,6 +3,7 @@
 *.dll
 *.so
 *.dylib
+godar
 
 # Test binaries
 *_test

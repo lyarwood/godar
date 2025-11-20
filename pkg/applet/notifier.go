@@ -14,10 +14,10 @@ type AppletNotifier struct {
 }
 
 // NewAppletNotifier creates a notifier that updates the applet
-func NewAppletNotifier(applet *Applet, enabled bool, duration time.Duration, logger *zap.Logger) *AppletNotifier {
+func NewAppletNotifier(applet *Applet, enabled bool, duration time.Duration, logger *zap.Logger, viewableDistance float64, predictionWindow time.Duration) *AppletNotifier {
 	return &AppletNotifier{
 		applet:   applet,
-		notifier: notification.NewNotifier(enabled, duration, logger),
+		notifier: notification.NewNotifier(enabled, duration, logger, viewableDistance, predictionWindow),
 	}
 }
 

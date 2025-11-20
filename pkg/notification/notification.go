@@ -30,37 +30,43 @@ func (d *DefaultNotificationSender) Notify(title, message, iconPath string) erro
 
 // Notifier handles sending notifications
 type Notifier struct {
-	enabled      bool
-	duration     time.Duration
-	logger       *zap.Logger
-	cacheDir     string
-	imageService *images.AircraftImageService
-	sender       NotificationSender
+	enabled          bool
+	duration         time.Duration
+	logger           *zap.Logger
+	cacheDir         string
+	imageService     *images.AircraftImageService
+	sender           NotificationSender
+	viewableDistance float64
+	predictionWindow time.Duration
 }
 
 // NewNotifier creates a new notification handler
-func NewNotifier(enabled bool, duration time.Duration, logger *zap.Logger) *Notifier {
+func NewNotifier(enabled bool, duration time.Duration, logger *zap.Logger, viewableDistance float64, predictionWindow time.Duration) *Notifier {
 	cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "godar", "images")
 	return &Notifier{
-		enabled:      enabled,
-		duration:     duration,
-		logger:       logger,
-		cacheDir:     cacheDir,
-		imageService: images.NewAircraftImageService(),
-		sender:       &DefaultNotificationSender{},
+		enabled:          enabled,
+		duration:         duration,
+		logger:           logger,
+		cacheDir:         cacheDir,
+		imageService:     images.NewAircraftImageService(),
+		sender:           &DefaultNotificationSender{},
+		viewableDistance: viewableDistance,
+		predictionWindow: predictionWindow,
 	}
 }
 
 // NewNotifierWithSender creates a new notification handler with a custom sender (for testing)
-func NewNotifierWithSender(enabled bool, duration time.Duration, logger *zap.Logger, sender NotificationSender) *Notifier {
+func NewNotifierWithSender(enabled bool, duration time.Duration, logger *zap.Logger, sender NotificationSender, viewableDistance float64, predictionWindow time.Duration) *Notifier {
 	cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "godar", "images")
 	return &Notifier{
-		enabled:      enabled,
-		duration:     duration,
-		logger:       logger,
-		cacheDir:     cacheDir,
-		imageService: images.NewAircraftImageService(),
-		sender:       sender,
+		enabled:          enabled,
+		duration:         duration,
+		logger:           logger,
+		cacheDir:         cacheDir,
+		imageService:     images.NewAircraftImageService(),
+		sender:           sender,
+		viewableDistance: viewableDistance,
+		predictionWindow: predictionWindow,
 	}
 }
 
@@ -91,7 +97,8 @@ func (n *Notifier) Send(callsign, aircraftType string, altitude int, speed float
 	// Calculate and add closest approach information if aircraft has valid heading and speed
 	if heading > 0 && speed > 1.0 && aircraftLat != 0 && aircraftLon != 0 {
 		approach := geo.CalculateClosestApproach(observerLat, observerLon, aircraftLat, aircraftLon, heading, speed)
-		if approach.WillApproach && approach.TimeToClosest > 0 && approach.TimeToClosest < 30*time.Minute {
+		// Only show prediction if aircraft will approach within viewable distance and prediction window
+		if approach.WillApproach && approach.TimeToClosest > 0 && approach.TimeToClosest < n.predictionWindow && approach.Distance <= n.viewableDistance {
 			timeStr := geo.FormatTimeToClosest(approach.TimeToClosest)
 			notificationMessage += fmt.Sprintf("\nClosest: %.1f km in %s", approach.Distance, timeStr)
 		}

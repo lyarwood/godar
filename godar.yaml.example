@@ -29,3 +29,5 @@ notification:
   notify_on_closer_only: true      # Only notify when aircraft get closer
   re_notify_after: "0s"            # Re-notify after this time even if not closer (e.g., "5m")
   cleanup_interval: "10m"          # How often to clean up old aircraft history
+  viewable_distance: 15.0          # Distance in km within which aircraft is considered viewable
+  prediction_window: "30m"         # Only show trajectory predictions within this time window
