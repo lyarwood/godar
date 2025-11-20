@@ -3,6 +3,8 @@ package applet
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -219,8 +221,16 @@ func (a *Applet) showConfiguration() {
 
 // getIcon returns the icon data for the system tray
 func getIcon() []byte {
-	// 22x22 airplane icon in PNG format - white airplane on transparent background
-	// Optimized for dark system tray themes
+	// Try to load icon from file first
+	home, err := os.UserHomeDir()
+	if err == nil {
+		iconPath := filepath.Join(home, ".local", "share", "godar", "icon.png")
+		if iconData, err := os.ReadFile(iconPath); err == nil {
+			return iconData
+		}
+	}
+
+	// Fallback to embedded icon if file not found
 	iconData := []byte{
 		0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
 		0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x16,

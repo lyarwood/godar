@@ -15,6 +15,8 @@ build: ## Build the application
 
 install: ## Install the application
 	go install ${LDFLAGS} ./
+	@mkdir -p ~/.local/share/godar
+	@cp -f assets/icon.png ~/.local/share/godar/icon.png 2>/dev/null || true
 
 test: ## Run tests
 	go test -v ./...
