@@ -11,6 +11,7 @@ import (
 	"github.com/gen2brain/beeep"
 	"github.com/getlantern/systray"
 	"github.com/lyarwood/godar/pkg/config"
+	"github.com/lyarwood/godar/pkg/fetch"
 	"github.com/lyarwood/godar/pkg/monitor"
 	"go.uber.org/zap"
 )
@@ -73,8 +74,7 @@ func (a *Applet) onReady() {
 	a.mToggleMonitor = systray.AddMenuItem("Start Monitoring", "Start aircraft monitoring")
 	systray.AddSeparator()
 
-	a.mRecentAircraft = systray.AddMenuItem("Recent Aircraft", "Recently detected aircraft")
-	a.mRecentAircraft.Disable()
+	a.mRecentAircraft = systray.AddMenuItem("Recent Aircraft (0)", "Recently detected aircraft")
 	systray.AddSeparator()
 
 	mConfig := systray.AddMenuItem("Configuration", "Show current configuration")
@@ -89,6 +89,13 @@ func (a *Applet) onReady() {
 	go func() {
 		for range mConfig.ClickedCh {
 			a.showConfiguration()
+		}
+	}()
+
+	// Show recent aircraft
+	go func() {
+		for range a.mRecentAircraft.ClickedCh {
+			a.showRecentAircraft()
 		}
 	}()
 
@@ -140,8 +147,28 @@ func (a *Applet) toggleMonitoring() {
 		systray.SetTooltip("Aircraft Monitor - Stopped")
 		a.logger.Info("Monitoring stopped via applet")
 	} else {
-		// Start monitoring
-		mon, err := monitor.NewMonitor(a.config, a.logger)
+		// Start monitoring with custom notifier that updates the applet
+		fetcher := fetch.NewFetcher(a.config.Server.URL, a.logger)
+		fetcher.SetFilters(
+			a.config.Filters.AircraftType,
+			a.config.Filters.MinAltitude,
+			a.config.Filters.MaxAltitude,
+			a.config.Filters.Military,
+			a.config.Filters.Operator,
+			a.config.Filters.FlightNumber,
+		)
+		fetcher.SetLocation(
+			a.config.Location.Latitude,
+			a.config.Location.Longitude,
+			a.config.Location.MaxDistance,
+		)
+		if a.config.Server.Username != "" || a.config.Server.Password != "" {
+			fetcher.SetAuth(a.config.Server.Username, a.config.Server.Password)
+		}
+
+		notifier := NewAppletNotifier(a, a.config.Notification.Enabled, a.config.Notification.Duration, a.logger)
+
+		mon, err := monitor.NewMonitorWithDeps(a.config, a.logger, fetcher, notifier)
 		if err != nil {
 			a.logger.Error("Failed to create monitor", zap.Error(err))
 			return
@@ -187,16 +214,9 @@ func (a *Applet) AddAircraftDetection(callsign, aircraftType string, altitude in
 
 // updateRecentAircraftMenu updates the recent aircraft submenu
 func (a *Applet) updateRecentAircraftMenu() {
-	// This is a simplified version - in a real implementation,
-	// you would need to manage submenu items dynamically
-	if len(a.recentAircraft) > 0 {
-		title := fmt.Sprintf("Recent Aircraft (%d)", len(a.recentAircraft))
-		a.mRecentAircraft.SetTitle(title)
-		a.mRecentAircraft.Enable()
-	} else {
-		a.mRecentAircraft.SetTitle("Recent Aircraft")
-		a.mRecentAircraft.Disable()
-	}
+	// Update the menu title with count
+	title := fmt.Sprintf("Recent Aircraft (%d)", len(a.recentAircraft))
+	a.mRecentAircraft.SetTitle(title)
 }
 
 // showConfiguration displays the current configuration in a notification
@@ -217,6 +237,34 @@ func (a *Applet) showConfiguration() {
 		zap.String("server", a.config.Server.URL),
 		zap.Duration("poll_interval", a.config.Monitoring.PollInterval),
 		zap.Float64("max_distance", a.config.Location.MaxDistance))
+}
+
+// showRecentAircraft displays recent aircraft detections in a notification
+func (a *Applet) showRecentAircraft() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	if len(a.recentAircraft) == 0 {
+		beeep.Notify("Recent Aircraft", "No recent aircraft detected", "")
+		return
+	}
+
+	message := ""
+	for i, ac := range a.recentAircraft {
+		if i > 0 {
+			message += "\n"
+		}
+		message += fmt.Sprintf("%s (%s)\n  Alt: %d ft, Dist: %.1f km\n  %s",
+			ac.Callsign, ac.Type, ac.Altitude, ac.Distance,
+			ac.Time.Format("15:04:05"))
+	}
+
+	err := beeep.Notify("Recent Aircraft", message, "")
+	if err != nil {
+		a.logger.Error("Failed to show recent aircraft notification", zap.Error(err))
+	}
+
+	a.logger.Info("Recent aircraft displayed", zap.Int("count", len(a.recentAircraft)))
 }
 
 // getIcon returns the icon data for the system tray
