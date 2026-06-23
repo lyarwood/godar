@@ -87,6 +87,36 @@ func IsValidCoordinate(lat, lon float64) bool {
 	return IsValidLatitude(lat) && IsValidLongitude(lon)
 }
 
+// KmToNauticalMiles converts kilometers to nautical miles
+func KmToNauticalMiles(km float64) float64 {
+	return km * 0.539957
+}
+
+// CalculateAspect determines the aspect of an aircraft relative to an observer.
+// aircraftHeading: the aircraft's track in degrees (0-360)
+// bearingToAircraft: the bearing from the observer to the aircraft in degrees (0-360)
+// Returns "Hot" (heading toward observer), "Cold" (heading away), or "Flanking"
+func CalculateAspect(aircraftHeading, bearingToAircraft float64) string {
+	reciprocal := math.Mod(bearingToAircraft+180, 360)
+	if reciprocal < 0 {
+		reciprocal += 360
+	}
+
+	diff := math.Abs(aircraftHeading - reciprocal)
+	if diff > 180 {
+		diff = 360 - diff
+	}
+
+	switch {
+	case diff <= 30:
+		return "Hot"
+	case diff >= 150:
+		return "Cold"
+	default:
+		return "Flanking"
+	}
+}
+
 // BearingToClockPosition converts a bearing relative to a user's heading into a clock position
 // userHeading: the direction the user is facing in degrees (0-360, 0=North)
 // bearing: the absolute bearing to the aircraft in degrees (0-360, 0=North)

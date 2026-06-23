@@ -76,6 +76,7 @@ var _ = Describe("Notification", func() {
 				Expect(notifications[0].Message).To(ContainSubstring("Distance: 25.50 km"))
 				Expect(notifications[0].Message).To(ContainSubstring("Direction: NE ("))
 				Expect(notifications[0].Message).To(ContainSubstring("o'clock)"))
+				Expect(notifications[0].Message).To(ContainSubstring("BRAA:"))
 			})
 
 			It("should handle empty callsign", func() {
@@ -201,6 +202,53 @@ var _ = Describe("Notification", func() {
 			})
 		})
 	})
+
+		Context("with BRAA format", func() {
+			It("should include BRAA line with Hot aspect when aircraft heads toward observer", func() {
+				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
+				// Aircraft at (51.5, 0.0) heading south (180), observer at (51.0, 0.0) — bearing ~0, so heading toward observer
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "N", 180.0, 51.5, 0.0, 51.0, 0.0, 0.0)
+				Expect(err).To(BeNil())
+
+				notifications := mockSender.GetNotifications()
+				Expect(notifications).To(HaveLen(1))
+				Expect(notifications[0].Message).To(ContainSubstring("BRAA:"))
+				Expect(notifications[0].Message).To(ContainSubstring("/Hot"))
+			})
+
+			It("should include BRAA line with Cold aspect when aircraft heads away from observer", func() {
+				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
+				// Aircraft at (51.5, 0.0) heading north (0), observer at (51.0, 0.0) — bearing ~0, heading same direction = Cold
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "N", 0.0, 51.5, 0.0, 51.0, 0.0, 0.0)
+				Expect(err).To(BeNil())
+
+				notifications := mockSender.GetNotifications()
+				Expect(notifications).To(HaveLen(1))
+				Expect(notifications[0].Message).To(ContainSubstring("/Cold"))
+			})
+
+			It("should include BRAA line with Flanking aspect for lateral movement", func() {
+				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
+				// Aircraft at (51.5, 0.0) heading east (90), observer at (51.0, 0.0) — bearing ~0, perpendicular = Flanking
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "N", 90.0, 51.5, 0.0, 51.0, 0.0, 0.0)
+				Expect(err).To(BeNil())
+
+				notifications := mockSender.GetNotifications()
+				Expect(notifications).To(HaveLen(1))
+				Expect(notifications[0].Message).To(ContainSubstring("/Flanking"))
+			})
+
+			It("should include range in nautical miles in BRAA", func() {
+				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
+				// 25.5 km ≈ 13.77 nm
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "N", 180.0, 51.5, 0.0, 51.0, 0.0, 0.0)
+				Expect(err).To(BeNil())
+
+				notifications := mockSender.GetNotifications()
+				Expect(notifications).To(HaveLen(1))
+				Expect(notifications[0].Message).To(ContainSubstring("/14/35000/"))
+			})
+		})
 
 	Describe("Send method", func() {
 		It("should be an alias for SendAircraftNotification", func() {

@@ -203,6 +203,72 @@ var _ = Describe("Geo Utils", func() {
 		})
 	})
 
+	Describe("KmToNauticalMiles", func() {
+		It("should convert 0 km to 0 nm", func() {
+			Expect(geo.KmToNauticalMiles(0.0)).To(BeNumerically("~", 0.0, 0.001))
+		})
+
+		It("should convert 1 km correctly", func() {
+			Expect(geo.KmToNauticalMiles(1.0)).To(BeNumerically("~", 0.53996, 0.001))
+		})
+
+		It("should convert 1.852 km to approximately 1 nm", func() {
+			Expect(geo.KmToNauticalMiles(1.852)).To(BeNumerically("~", 1.0, 0.01))
+		})
+
+		It("should convert 100 km correctly", func() {
+			Expect(geo.KmToNauticalMiles(100.0)).To(BeNumerically("~", 53.996, 0.1))
+		})
+	})
+
+	Describe("CalculateAspect", func() {
+		It("should return Hot when aircraft is heading toward observer", func() {
+			// Aircraft heading 180, bearing to aircraft is 0 (aircraft is north, heading south toward observer)
+			Expect(geo.CalculateAspect(180.0, 0.0)).To(Equal("Hot"))
+			// Aircraft heading 0, bearing to aircraft is 180 (aircraft is south, heading north toward observer)
+			Expect(geo.CalculateAspect(0.0, 180.0)).To(Equal("Hot"))
+			// Aircraft heading 270, bearing to aircraft is 90 (aircraft is east, heading west toward observer)
+			Expect(geo.CalculateAspect(270.0, 90.0)).To(Equal("Hot"))
+		})
+
+		It("should return Hot within 30 degree tolerance", func() {
+			// Aircraft heading 200, bearing to aircraft is 0 (reciprocal 180, diff = 20)
+			Expect(geo.CalculateAspect(200.0, 0.0)).To(Equal("Hot"))
+			// Aircraft heading 160, bearing to aircraft is 0 (reciprocal 180, diff = 20)
+			Expect(geo.CalculateAspect(160.0, 0.0)).To(Equal("Hot"))
+		})
+
+		It("should return Cold when aircraft is heading away from observer", func() {
+			// Aircraft heading 0, bearing to aircraft is 0 (aircraft is north, heading further north)
+			Expect(geo.CalculateAspect(0.0, 0.0)).To(Equal("Cold"))
+			// Aircraft heading 90, bearing to aircraft is 90 (aircraft is east, heading further east)
+			Expect(geo.CalculateAspect(90.0, 90.0)).To(Equal("Cold"))
+			// Aircraft heading 180, bearing to aircraft is 180
+			Expect(geo.CalculateAspect(180.0, 180.0)).To(Equal("Cold"))
+		})
+
+		It("should return Cold within tolerance", func() {
+			// Aircraft heading 10, bearing to aircraft is 0 (reciprocal 180, diff = 170)
+			Expect(geo.CalculateAspect(10.0, 0.0)).To(Equal("Cold"))
+		})
+
+		It("should return Flanking for lateral movement", func() {
+			// Aircraft heading 90, bearing to aircraft is 0 (reciprocal 180, diff = 90)
+			Expect(geo.CalculateAspect(90.0, 0.0)).To(Equal("Flanking"))
+			// Aircraft heading 270, bearing to aircraft is 0 (reciprocal 180, diff = 90)
+			Expect(geo.CalculateAspect(270.0, 0.0)).To(Equal("Flanking"))
+		})
+
+		It("should handle negative bearings", func() {
+			Expect(geo.CalculateAspect(-180.0, 0.0)).To(Equal("Hot"))
+		})
+
+		It("should handle bearings over 360", func() {
+			// 540 = 180, bearing 0, reciprocal 180, diff = 0 → Hot
+			Expect(geo.CalculateAspect(540.0, 0.0)).To(Equal("Hot"))
+		})
+	})
+
 	Describe("BearingToClockPosition", func() {
 		It("should return 12 o'clock for straight ahead (0 degrees relative)", func() {
 			// User facing north (0), aircraft also north (0)

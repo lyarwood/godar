@@ -87,8 +87,13 @@ func (n *Notifier) Send(callsign, aircraftType string, altitude int, speed float
 	// Build notification message - always include clock position
 	directionInfo := fmt.Sprintf("%s (%d o'clock)", direction, clockPosition)
 
-	notificationMessage := fmt.Sprintf("Type: %s\nAltitude: %d ft\nSpeed: %.1f knots\nDistance: %.2f km\nDirection: %s",
-		aircraftType, altitude, speed, distance, directionInfo)
+	// Calculate BRAA (Bearing, Range, Altitude, Aspect)
+	rangeNm := geo.KmToNauticalMiles(distance)
+	aspect := geo.CalculateAspect(heading, bearing)
+	braa := fmt.Sprintf("%03.0f/%.0f/%d/%s", bearing, rangeNm, altitude, aspect)
+
+	notificationMessage := fmt.Sprintf("Type: %s\nAltitude: %d ft\nSpeed: %.1f knots\nDistance: %.2f km\nDirection: %s\nBRAA: %s",
+		aircraftType, altitude, speed, distance, directionInfo, braa)
 
 	// Add previous distance information if available
 	if len(previousDistance) > 0 && previousDistance[0] > 0 {
