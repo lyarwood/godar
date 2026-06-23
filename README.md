@@ -14,6 +14,8 @@ A command-line tool to monitor overflying aircraft from a Virtual Radar Server w
 - 🚀 **High performance** with connection pooling and retry logic
 - 📊 **Structured logging** for monitoring and debugging
 - 💾 **Smart image caching** to avoid repeated downloads
+- 🧭 **BRAA callouts** with bearing, range, altitude, and aspect in standard military/ATC format
+- 🕐 **Clock position** relative to your configured heading
 
 ## Installation
 
@@ -78,6 +80,7 @@ location:
   latitude: 51.5074
   longitude: -0.1278
   max_distance: 100.0
+  heading: 0              # Direction you are facing in degrees (0-359, 0=North)
 
 monitoring:
   poll_interval: "10s"
@@ -108,6 +111,7 @@ export GODAR_FILTERS_MILITARY="false"
 export GODAR_LOCATION_LATITUDE="51.5074"
 export GODAR_LOCATION_LONGITUDE="-0.1278"
 export GODAR_LOCATION_MAX_DISTANCE="100.0"
+export GODAR_LOCATION_HEADING="0"                              # Direction you are facing (0-359, 0=North)
 export GODAR_MONITORING_POLL_INTERVAL="10s"
 export GODAR_NOTIFICATION_ENABLED="true"
 export GODAR_NOTIFICATION_DURATION="30s"  # How long notifications are displayed
@@ -175,6 +179,32 @@ notification:
   viewable_distance: 10.0
   prediction_window: "20m"
 ```
+
+### BRAA Callouts
+
+Notifications include a [BRAA](https://www.lotatc.com/documentation/client/braa.html) line using the standard military/ATC format: **Bearing / Range / Altitude / Aspect**.
+
+```
+BRAA: 080/14/35000/Hot
+```
+
+- **Bearing**: Degrees from your location to the aircraft (000-360)
+- **Range**: Distance in nautical miles
+- **Altitude**: Altitude in feet
+- **Aspect**: Aircraft movement relative to you:
+  - **Hot** — heading toward you
+  - **Cold** — heading away from you
+  - **Flanking** — moving laterally
+
+### Clock Position
+
+When a `heading` is configured, notifications include a clock position relative to the direction you are facing. For example, an aircraft to your right is reported as "3 o'clock":
+
+```
+Direction: NE (2 o'clock)
+```
+
+Set `heading` to the compass bearing you are facing (0 = North, 90 = East, etc.). With heading `0`, 12 o'clock is due north.
 
 ### Aircraft Identification
 
