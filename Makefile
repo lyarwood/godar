@@ -47,10 +47,8 @@ vendor: ## Vendor all dependencies
 	go mod vendor
 	@echo "Dependencies vendored successfully"
 
-release: ## Build for multiple platforms
+release: ## Build release binary (Linux only; systray requires native CGo)
 	GOOS=linux GOARCH=amd64 go build ${LDFLAGS} -o ${BINARY_NAME}-linux-amd64 ./
-	GOOS=darwin GOARCH=amd64 go build ${LDFLAGS} -o ${BINARY_NAME}-darwin-amd64 ./
-	GOOS=windows GOARCH=amd64 go build ${LDFLAGS} -o ${BINARY_NAME}-windows-amd64.exe ./
 
 deps: ## Download dependencies
 	go mod download

@@ -46,13 +46,3 @@ jobs:
           asset_path: ./godar-linux-amd64
           asset_name: godar-linux-amd64
           asset_content_type: application/octet-stream
-
-      - name: Upload Windows binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./godar-windows-amd64.exe
-          asset_name: godar-windows-amd64.exe
-          asset_content_type: application/octet-stream
