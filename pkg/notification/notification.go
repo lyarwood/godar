@@ -71,16 +71,24 @@ func NewNotifierWithSender(enabled bool, duration time.Duration, logger *zap.Log
 }
 
 // Send sends a desktop notification for a detected aircraft.
-func (n *Notifier) Send(callsign, aircraftType string, altitude int, speed float64, distance float64, direction string, heading float64, aircraftLat, aircraftLon, observerLat, observerLon float64, previousDistance ...float64) error {
+func (n *Notifier) Send(callsign, aircraftType string, altitude int, speed float64, distance float64, direction string, heading float64, aircraftLat, aircraftLon, observerLat, observerLon, userHeading float64, previousDistance ...float64) error {
 	if !n.enabled {
 		return nil
 	}
 
 	notificationTitle := fmt.Sprintf("Aircraft Detected: %s", callsign)
 
-	// Build notification message
+	// Calculate bearing to aircraft
+	bearing := geo.CalculateBearing(observerLat, observerLon, aircraftLat, aircraftLon)
+
+	// Calculate clock position based on user's heading
+	clockPosition := geo.BearingToClockPosition(userHeading, bearing)
+
+	// Build notification message - always include clock position
+	directionInfo := fmt.Sprintf("%s (%d o'clock)", direction, clockPosition)
+
 	notificationMessage := fmt.Sprintf("Type: %s\nAltitude: %d ft\nSpeed: %.1f knots\nDistance: %.2f km\nDirection: %s",
-		aircraftType, altitude, speed, distance, direction)
+		aircraftType, altitude, speed, distance, directionInfo)
 
 	// Add previous distance information if available
 	if len(previousDistance) > 0 && previousDistance[0] > 0 {

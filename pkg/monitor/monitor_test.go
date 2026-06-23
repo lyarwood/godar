@@ -59,7 +59,7 @@ var _ = Describe("Monitor", func() {
 		acList := &aircraft.AircraftList{Aircraft: []aircraft.Aircraft{ac}}
 		fetcher := &mockFetcher{acList: acList}
 		n := notification.NewMockNotificationSender()
-		notifier := notification.NewNotifierWithSender(true, time.Second, logger, n)
+		notifier := notification.NewNotifierWithSender(true, time.Second, logger, n, 15.0, 30*time.Minute)
 		mon, _ := NewMonitorWithDeps(cfg, logger, fetcher, notifier)
 		err := mon.processAircraft(ac)
 		Expect(err).ToNot(HaveOccurred())
@@ -73,7 +73,7 @@ var _ = Describe("Monitor", func() {
 		fetcher := &mockFetcher{}
 		n := notification.NewMockNotificationSender()
 		n.SetShouldError(true, "test error")
-		notifier := notification.NewNotifierWithSender(true, time.Second, logger, n)
+		notifier := notification.NewNotifierWithSender(true, time.Second, logger, n, 15.0, 30*time.Minute)
 		mon, _ := NewMonitorWithDeps(cfg, logger, fetcher, notifier)
 		err := mon.processAircraft(ac)
 		Expect(err).To(HaveOccurred())
@@ -82,7 +82,7 @@ var _ = Describe("Monitor", func() {
 
 	It("should clean up aircraft history", func() {
 		fetcher := &mockFetcher{}
-		notifier := notification.NewNotifier(cfg.Notification.Enabled, cfg.Notification.Duration, logger)
+		notifier := notification.NewNotifier(cfg.Notification.Enabled, cfg.Notification.Duration, logger, 15.0, 30*time.Minute)
 		mon, _ := NewMonitorWithDeps(cfg, logger, fetcher, notifier)
 		mon.aircraftHistory = map[string]*AircraftTracker{
 			"old":    {LastSeen: time.Now().Add(-20 * time.Minute)},

@@ -86,3 +86,35 @@ func IsValidLongitude(lon float64) bool {
 func IsValidCoordinate(lat, lon float64) bool {
 	return IsValidLatitude(lat) && IsValidLongitude(lon)
 }
+
+// BearingToClockPosition converts a bearing relative to a user's heading into a clock position
+// userHeading: the direction the user is facing in degrees (0-360, 0=North)
+// bearing: the absolute bearing to the aircraft in degrees (0-360, 0=North)
+// Returns a clock position (1-12) where 12 is straight ahead of the user's heading
+func BearingToClockPosition(userHeading, bearing float64) int {
+	// Normalize both bearings to 0-360
+	userHeading = math.Mod(userHeading, 360)
+	if userHeading < 0 {
+		userHeading += 360
+	}
+	bearing = math.Mod(bearing, 360)
+	if bearing < 0 {
+		bearing += 360
+	}
+
+	// Calculate relative bearing (difference between aircraft bearing and user heading)
+	relativeBearing := bearing - userHeading
+	if relativeBearing < 0 {
+		relativeBearing += 360
+	}
+
+	// Convert to clock position (12 positions, each covering 30 degrees)
+	// 12 o'clock is straight ahead (345-15 degrees relative)
+	// Adjust so 0 degrees relative is 12 o'clock
+	clockPosition := int(math.Round(relativeBearing/30)) % 12
+	if clockPosition == 0 {
+		clockPosition = 12
+	}
+
+	return clockPosition
+}

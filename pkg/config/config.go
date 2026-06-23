@@ -38,6 +38,7 @@ type LocationConfig struct {
 	Latitude    float64 `mapstructure:"latitude"`
 	Longitude   float64 `mapstructure:"longitude"`
 	MaxDistance float64 `mapstructure:"max_distance"`
+	Heading     float64 `mapstructure:"heading"` // Direction user is facing in degrees (0-360, 0=North)
 }
 
 // MonitoringConfig holds monitoring-related configuration
@@ -103,6 +104,7 @@ func setDefaults() {
 	viper.SetDefault("location.latitude", 0.0)
 	viper.SetDefault("location.longitude", 0.0)
 	viper.SetDefault("location.max_distance", 0.0)
+	viper.SetDefault("location.heading", 0.0)
 	viper.SetDefault("monitoring.poll_interval", "60s")
 	viper.SetDefault("monitoring.debug", false)
 	viper.SetDefault("notification.enabled", false)
@@ -133,6 +135,10 @@ func validateConfig(config *Config) error {
 		if config.Location.Longitude < -180 || config.Location.Longitude > 180 {
 			return fmt.Errorf("longitude must be between -180 and 180")
 		}
+	}
+
+	if config.Location.Heading < 0 || config.Location.Heading >= 360 {
+		return fmt.Errorf("heading must be between 0 and 359")
 	}
 
 	if config.Monitoring.PollInterval < time.Second {

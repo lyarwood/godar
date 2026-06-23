@@ -64,7 +64,7 @@ var _ = Describe("Notification", func() {
 		Context("when notifications are enabled", func() {
 			It("should send notification with correct content", func() {
 				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "NE", 90.0, 51.5, -0.1, 51.0, 0.0)
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "NE", 90.0, 51.5, -0.1, 51.0, 0.0, 0.0)
 				Expect(err).To(BeNil())
 
 				notifications := mockSender.GetNotifications()
@@ -74,12 +74,13 @@ var _ = Describe("Notification", func() {
 				Expect(notifications[0].Message).To(ContainSubstring("Altitude: 35000 ft"))
 				Expect(notifications[0].Message).To(ContainSubstring("Speed: 450.0 knots"))
 				Expect(notifications[0].Message).To(ContainSubstring("Distance: 25.50 km"))
-				Expect(notifications[0].Message).To(ContainSubstring("Direction: NE"))
+				Expect(notifications[0].Message).To(ContainSubstring("Direction: NE ("))
+				Expect(notifications[0].Message).To(ContainSubstring("o'clock)"))
 			})
 
 			It("should handle empty callsign", func() {
 				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-				err := notifier.Send("", "A320", 35000, 450, 25.5, "N", 0.0, 51.5, -0.1, 51.0, 0.0)
+				err := notifier.Send("", "A320", 35000, 450, 25.5, "N", 0.0, 51.5, -0.1, 51.0, 0.0, 0.0)
 				Expect(err).To(BeNil())
 
 				notifications := mockSender.GetNotifications()
@@ -89,7 +90,7 @@ var _ = Describe("Notification", func() {
 
 			It("should handle empty aircraft type", func() {
 				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-				err := notifier.Send("TEST123", "", 35000, 450, 25.5, "S", 180.0, 51.5, -0.1, 51.0, 0.0)
+				err := notifier.Send("TEST123", "", 35000, 450, 25.5, "S", 180.0, 51.5, -0.1, 51.0, 0.0, 0.0)
 				Expect(err).To(BeNil())
 
 				notifications := mockSender.GetNotifications()
@@ -99,7 +100,7 @@ var _ = Describe("Notification", func() {
 
 			It("should handle zero values", func() {
 				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-				err := notifier.Send("TEST123", "A320", 0, 0, 0.0, "W", 270.0, 51.5, -0.1, 51.0, 0.0)
+				err := notifier.Send("TEST123", "A320", 0, 0, 0.0, "W", 270.0, 51.5, -0.1, 51.0, 0.0, 0.0)
 				Expect(err).To(BeNil())
 
 				notifications := mockSender.GetNotifications()
@@ -111,7 +112,7 @@ var _ = Describe("Notification", func() {
 
 			It("should include previous distance when aircraft is getting closer", func() {
 				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-				err := notifier.Send("TEST123", "A320", 35000, 450, 20.0, "NE", 45.0, 51.5, -0.1, 51.0, 0.0, 25.5)
+				err := notifier.Send("TEST123", "A320", 35000, 450, 20.0, "NE", 45.0, 51.5, -0.1, 51.0, 0.0, 0.0, 25.5)
 				Expect(err).To(BeNil())
 
 				notifications := mockSender.GetNotifications()
@@ -121,7 +122,7 @@ var _ = Describe("Notification", func() {
 
 			It("should include previous distance when aircraft is moving away", func() {
 				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-				err := notifier.Send("TEST123", "A320", 35000, 450, 30.0, "SW", 225.0, 51.5, -0.1, 51.0, 0.0, 25.5)
+				err := notifier.Send("TEST123", "A320", 35000, 450, 30.0, "SW", 225.0, 51.5, -0.1, 51.0, 0.0, 0.0, 25.5)
 				Expect(err).To(BeNil())
 
 				notifications := mockSender.GetNotifications()
@@ -131,7 +132,7 @@ var _ = Describe("Notification", func() {
 
 			It("should handle zero previous distance", func() {
 				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "E", 90.0, 51.5, -0.1, 51.0, 0.0, 0.0)
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "E", 90.0, 51.5, -0.1, 51.0, 0.0, 0.0, 0.0)
 				Expect(err).To(BeNil())
 
 				notifications := mockSender.GetNotifications()
@@ -143,7 +144,7 @@ var _ = Describe("Notification", func() {
 			It("should handle notification sender error", func() {
 				mockSender.SetShouldError(true, "test error")
 				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "N", 0.0, 51.5, -0.1, 51.0, 0.0)
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "N", 0.0, 51.5, -0.1, 51.0, 0.0, 0.0)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("mock error: test error"))
 			})
@@ -152,16 +153,51 @@ var _ = Describe("Notification", func() {
 		Context("when notifications are disabled", func() {
 			It("should not send notification and return nil", func() {
 				notifier := notification.NewNotifierWithSender(false, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "SE", 135.0, 51.5, -0.1, 51.0, 0.0)
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "SE", 135.0, 51.5, -0.1, 51.0, 0.0, 0.0)
 				Expect(err).To(BeNil())
 				Expect(mockSender.GetNotificationCount()).To(Equal(0))
 			})
 
 			It("should not send notification with previous distance and return nil", func() {
 				notifier := notification.NewNotifierWithSender(false, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "NW", 315.0, 51.5, -0.1, 51.0, 0.0, 30.0)
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "NW", 315.0, 51.5, -0.1, 51.0, 0.0, 0.0, 30.0)
 				Expect(err).To(BeNil())
 				Expect(mockSender.GetNotificationCount()).To(Equal(0))
+			})
+		})
+
+		Context("with user heading configured", func() {
+			It("should include clock position for heading 0 (North) - aircraft to the east", func() {
+				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
+				// Aircraft to the east: observer at (51.0, 0.0), aircraft at (51.0, 0.5) = bearing ~90 degrees
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "E", 90.0, 51.0, 0.5, 51.0, 0.0, 0.0)
+				Expect(err).To(BeNil())
+
+				notifications := mockSender.GetNotifications()
+				Expect(notifications).To(HaveLen(1))
+				Expect(notifications[0].Message).To(ContainSubstring("Direction: E (3 o'clock)"))
+			})
+
+			It("should include clock position for heading 90 (East) - aircraft to the north", func() {
+				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
+				// Aircraft to the north: observer at (51.0, 0.0), aircraft at (51.5, 0.0) = bearing ~0 degrees
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "N", 0.0, 51.5, 0.0, 51.0, 0.0, 90.0)
+				Expect(err).To(BeNil())
+
+				notifications := mockSender.GetNotifications()
+				Expect(notifications).To(HaveLen(1))
+				Expect(notifications[0].Message).To(ContainSubstring("Direction: N (9 o'clock)"))
+			})
+
+			It("should include clock position for heading 180 (South) - aircraft to the east", func() {
+				notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
+				// Aircraft to the east: observer at (51.0, 0.0), aircraft at (51.0, 0.5) = bearing ~90 degrees
+				err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "E", 90.0, 51.0, 0.5, 51.0, 0.0, 180.0)
+				Expect(err).To(BeNil())
+
+				notifications := mockSender.GetNotifications()
+				Expect(notifications).To(HaveLen(1))
+				Expect(notifications[0].Message).To(ContainSubstring("Direction: E (9 o'clock)"))
 			})
 		})
 	})
@@ -169,7 +205,7 @@ var _ = Describe("Notification", func() {
 	Describe("Send method", func() {
 		It("should be an alias for SendAircraftNotification", func() {
 			notifier := notification.NewNotifierWithSender(true, 30*time.Second, logger, mockSender, 15.0, 30*time.Minute)
-			err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "NE", 45.0, 51.5, -0.1, 51.0, 0.0)
+			err := notifier.Send("TEST123", "A320", 35000, 450, 25.5, "NE", 45.0, 51.5, -0.1, 51.0, 0.0, 0.0)
 			Expect(err).To(BeNil())
 			Expect(mockSender.GetNotificationCount()).To(Equal(1))
 		})

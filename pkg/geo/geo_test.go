@@ -202,4 +202,65 @@ var _ = Describe("Geo Utils", func() {
 			Expect(geo.BearingToDirection(720.0)).To(Equal("N"))
 		})
 	})
+
+	Describe("BearingToClockPosition", func() {
+		It("should return 12 o'clock for straight ahead (0 degrees relative)", func() {
+			// User facing north (0), aircraft also north (0)
+			Expect(geo.BearingToClockPosition(0.0, 0.0)).To(Equal(12))
+			// User facing east (90), aircraft also east (90)
+			Expect(geo.BearingToClockPosition(90.0, 90.0)).To(Equal(12))
+			// User facing south (180), aircraft also south (180)
+			Expect(geo.BearingToClockPosition(180.0, 180.0)).To(Equal(12))
+		})
+
+		It("should return 3 o'clock for 90 degrees to the right", func() {
+			// User facing north (0), aircraft to the east (90)
+			Expect(geo.BearingToClockPosition(0.0, 90.0)).To(Equal(3))
+			// User facing east (90), aircraft to the south (180)
+			Expect(geo.BearingToClockPosition(90.0, 180.0)).To(Equal(3))
+		})
+
+		It("should return 6 o'clock for directly behind (180 degrees relative)", func() {
+			// User facing north (0), aircraft to the south (180)
+			Expect(geo.BearingToClockPosition(0.0, 180.0)).To(Equal(6))
+			// User facing east (90), aircraft to the west (270)
+			Expect(geo.BearingToClockPosition(90.0, 270.0)).To(Equal(6))
+		})
+
+		It("should return 9 o'clock for 90 degrees to the left", func() {
+			// User facing north (0), aircraft to the west (270)
+			Expect(geo.BearingToClockPosition(0.0, 270.0)).To(Equal(9))
+			// User facing east (90), aircraft to the north (0)
+			Expect(geo.BearingToClockPosition(90.0, 0.0)).To(Equal(9))
+			// User facing south (180), aircraft to the east (90)
+			Expect(geo.BearingToClockPosition(180.0, 90.0)).To(Equal(9))
+		})
+
+		It("should handle all 12 clock positions", func() {
+			userHeading := 0.0 // Facing North
+			// Test all 12 positions around the clock
+			Expect(geo.BearingToClockPosition(userHeading, 0.0)).To(Equal(12))   // 12 o'clock - straight ahead
+			Expect(geo.BearingToClockPosition(userHeading, 30.0)).To(Equal(1))   // 1 o'clock
+			Expect(geo.BearingToClockPosition(userHeading, 60.0)).To(Equal(2))   // 2 o'clock
+			Expect(geo.BearingToClockPosition(userHeading, 90.0)).To(Equal(3))   // 3 o'clock
+			Expect(geo.BearingToClockPosition(userHeading, 120.0)).To(Equal(4))  // 4 o'clock
+			Expect(geo.BearingToClockPosition(userHeading, 150.0)).To(Equal(5))  // 5 o'clock
+			Expect(geo.BearingToClockPosition(userHeading, 180.0)).To(Equal(6))  // 6 o'clock
+			Expect(geo.BearingToClockPosition(userHeading, 210.0)).To(Equal(7))  // 7 o'clock
+			Expect(geo.BearingToClockPosition(userHeading, 240.0)).To(Equal(8))  // 8 o'clock
+			Expect(geo.BearingToClockPosition(userHeading, 270.0)).To(Equal(9))  // 9 o'clock
+			Expect(geo.BearingToClockPosition(userHeading, 300.0)).To(Equal(10)) // 10 o'clock
+			Expect(geo.BearingToClockPosition(userHeading, 330.0)).To(Equal(11)) // 11 o'clock
+		})
+
+		It("should handle negative bearings", func() {
+			// Negative bearings should be normalized to 0-360
+			Expect(geo.BearingToClockPosition(0.0, -90.0)).To(Equal(9)) // -90 = 270 degrees
+		})
+
+		It("should handle bearings over 360", func() {
+			// Bearings over 360 should be normalized
+			Expect(geo.BearingToClockPosition(0.0, 450.0)).To(Equal(3)) // 450 = 90 degrees
+		})
+	})
 })

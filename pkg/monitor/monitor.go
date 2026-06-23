@@ -28,7 +28,7 @@ type Fetcher interface {
 
 // Notifier defines the interface for sending notifications
 type Notifier interface {
-	Send(callsign, aircraftType string, altitude int, speed float64, distance float64, direction string, heading float64, aircraftLat, aircraftLon, observerLat, observerLon float64, previousDistance ...float64) error
+	Send(callsign, aircraftType string, altitude int, speed float64, distance float64, direction string, heading float64, aircraftLat, aircraftLon, observerLat, observerLon, userHeading float64, previousDistance ...float64) error
 }
 
 // AircraftTracker tracks aircraft distance history
@@ -222,7 +222,7 @@ func (m *Monitor) processAircraft(ac aircraft.Aircraft) error {
 
 	// Send notification if enabled and aircraft is getting closer
 	if m.config.Notification.Enabled && shouldNotify {
-		if err := m.notifier.Send(ac.Call, ac.Type, ac.Alt, ac.Spd, distance, direction, ac.Trak, ac.Lat, ac.Long, m.config.Location.Latitude, m.config.Location.Longitude, previousDistance); err != nil {
+		if err := m.notifier.Send(ac.Call, ac.Type, ac.Alt, ac.Spd, distance, direction, ac.Trak, ac.Lat, ac.Long, m.config.Location.Latitude, m.config.Location.Longitude, m.config.Location.Heading, previousDistance); err != nil {
 			return fmt.Errorf("failed to send notification: %w", err)
 		}
 	}
